@@ -211,11 +211,11 @@
                 <span>没有账号，去</span>注册
             </h2>
             <div class="input-box">
-                <input type="text" placeholder="用户名">
-                <input type="password" placeholder="密码">
-                <input type="password" placeholder="确认密码">
+                <input type="text" placeholder="用户名" id="register-username">
+                <input type="password" placeholder="密码" id="register-password">
+                <input type="password" placeholder="确认密码" id="register-confirm-password">
             </div>
-            <button>注册</button>
+            <button onclick="register()">注册</button>
         </div>
         <div class="login-box slide-up">
             <div class="center">
@@ -223,14 +223,70 @@
                     <span>已有账号，去</span>登录
                 </h2>
                 <div class="input-box">
-                    <input type="text" placeholder="用户名">
-                    <input type="password" placeholder="密码">
+                    <input type="text" placeholder="用户名" id="login-username">
+                    <input type="password" placeholder="密码" id="login-password">
                 </div>
-                <button>登录</button>
+                <button onclick="login()">登录</button>
             </div>
         </div>
     </div>
     <script>
+        function register() {
+            // 获取注册表单数据
+            let username = document.getElementById("register-username").value;
+            let password = document.getElementById("register-password").value;
+            let confirmPassword = document.getElementById("register-confirm-password").value;
+
+            // 检查密码和确认密码是否一致
+            if (password !== confirmPassword) {
+                alert("密码和确认密码不一致");
+                return;
+            }
+
+            // 发送注册请求
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "/user");
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        let response = JSON.parse(xhr.responseText);
+                        alert(response.msg);
+                        if (response.status === 1) {
+                            // 注册成功，切换到登录界面
+                            login_title.click();
+                        }
+                    } else {
+                        alert("注册失败");
+                    }
+                }
+            };
+            xhr.send(`type=register&username=${username}&password=${password}`);
+        }
+
+        function login() {
+            // 获取登录表单数据
+            let username = document.getElementById("login-username").value;
+            let password = document.getElementById("login-password").value;
+
+            // 发送登录请求
+            let xhr = new XMLHttpRequest();
+            xhr.open("POST", "/user");
+            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        let response = JSON.parse(xhr.responseText);
+                        alert(response.msg);
+                        window.location.href = "/search"
+                    } else {
+                        alert("登录失败");
+                    }
+                }
+            };
+            xhr.send(`type=login&username=${username}&password=${password}`);
+        }
+
         // 获取要操作的元素
         let login_title = document.querySelector('.login-title');
         let register_title = document.querySelector('.register-title');
@@ -251,8 +307,6 @@
                 register_box.classList.remove('slide-up');
             }
         })
-
-
     </script>
 </body>
 

@@ -15,8 +15,9 @@ def index():
 # 处理登录和注册请求
 @app.route("/user", methods=["POST"])
 def user():
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     # 读取user.json文件
-    with open("user.json", "r", encoding="utf-8") as f:
+    with open(os.path.join(BASE_DIR, "user.json"), "r", encoding="utf-8") as f:
         users = json.load(f)
 
     # 获取表单数据
@@ -37,7 +38,7 @@ def user():
             # 创建新用户
             users[username] = {"password": password}
             # 更新user.json文件
-            with open("user.json", "w", encoding="utf-8") as f:
+            with open(os.path.join(BASE_DIR, "user.json"), "w", encoding="utf-8") as f:
                 json.dump(users, f)
             return jsonify({"status": 1, "msg": "注册成功"})
         else:
