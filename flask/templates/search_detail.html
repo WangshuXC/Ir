@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>搜索</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/x-icon">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+
+            background: url("/static/bg.png") no-repeat center;
+            background-size: cover;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+
+
+            top: 1vh;
+            left: -15vw;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            transition: width 1s ease, height 0.5s ease;
+            position: relative;
+
+            width: 55vw;
+            height: 4vh;
+
+            margin-bottom: 2vh;
+        }
+
+        .result-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            transition: width 1s ease, height 0.5s ease;
+            position: relative;
+
+            width: 55vw;
+            height: 85vh;
+
+            overflow-y: scroll;
+        }
+
+        .result-box::-webkit-scrollbar {
+            width: 8px;
+            background-color: transparent;
+        }
+
+        .result-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            background-color: rgba(221, 221, 221, 0.6);
+
+            width: 90%;
+            margin-bottom: 20px;
+        }
+
+        .result-item a {
+            color: #73634f;
+        }
+
+        .result-item h3 {
+            margin-bottom: 0px;
+        }
+
+        .result-item h4 {
+            margin-top: 5px;
+            margin-bottom: 8px;
+        }
+
+        .search-box input[type="text"] {
+            margin-right: 10px;
+            padding: 5px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            transition: font-size 0.5s ease;
+        }
+
+        .search-box input[type="submit"] {
+            padding: 5px 10px;
+            background-color: #73634f;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            position: absolute;
+            right: 15px;
+            transition: font-size 0.5s ease;
+
+            width: 10%;
+            height: 70%;
+        }
+
+        #searchText {
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff00;
+        }
+    </style>
+
+    <script>
+        const data = [
+            {
+                title: "送觉藏主归华藏",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_5251",
+                content: "遁庵胸次太湖宽，偃岳旋岚鼓不湍。老手惯曾谙水脉，也须观水又观澜。"
+            },
+            {
+                title: "静夜思",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_1001",
+                content: "床前明月光，疑是地上霜。举头望明月，低头思故乡。"
+            },
+            {
+                title: "梅花",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_2003",
+                content: "墙角数枝梅，凌寒独自开。遥知不是雪，为有暗香来。"
+            },
+            {
+                title: "春晓",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_3004",
+                content: "春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。"
+            },
+            {
+                title: "江南春",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_4005",
+                content: "千里莺啼绿映红，水村山郭酒旗风。南朝四百八十寺，多少楼台烟雨中。"
+            },
+            {
+                title: "西江月",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_5006",
+                content: "会挽雕弓如满月，西江夜渡对尘风。桃花尽日随流水，洞在清溪何处通。"
+            },
+            {
+                title: "念奴娇·赤壁怀古",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_6007",
+                content: "大江东去，浪淘尽、千古风流人物。故垒西边，人道是、三国周郎赤壁。"
+            },
+            {
+                title: "登鹳雀楼",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_7008",
+                content: "白日依山尽，黄河入海流。欲穷千里目，更上一层楼。"
+            },
+            {
+                title: "望天门山",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_8009",
+                content: "天门中断楚江开，碧水东流至此回。两岸青山相对出，孤帆一片日边来。"
+            },
+            {
+                title: "寄扬州韩绰判官",
+                dynasty: "唐",
+                auth: "李白",
+                url: "https://www.gushici.com/t_9010",
+                content: "青山隐隐水迢迢，秋尽江南草未凋。二十四桥明月夜，玉人何处教吹箫。"
+            }
+        ];
+
+        window.onload = function () {
+            var q = "{{ q }}";
+            document.getElementById('searchText').value = q;
+
+            const resultBox = document.querySelector('.result-box');
+            // 填充结果
+            data.forEach((item, index) => {
+                const resultItem = document.createElement('div');
+                resultItem.classList.add('result-item');
+                resultItem.innerHTML = `
+            <h3><a href="${item.url}">${item.title}</a></h3>
+            <h4>[${item.dynasty}]·${item.auth}</h4>
+            <p>${item.content}</p>
+        `;
+                resultBox.appendChild(resultItem);
+
+                if (index === 9) {
+                    return;
+                }
+            });
+        };
+
+        function search() {
+            var q = document.getElementById('searchText').value;
+
+            if (q.trim() === '') {
+                return;
+            }
+
+            window.location.href = "/search?q=" + q;
+        }
+
+
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="search-box">
+            <input type="text" id='searchText'>
+            <input type="submit" id="searchBtn" value="搜索" onclick="search()">
+        </div>
+        <div class="result-box">
+
+        </div>
+    </div>
+</body>
+
+</html>

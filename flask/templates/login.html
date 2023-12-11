@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 
     <title>注册登录</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/x-icon">
     <style>
         * {
             margin: 0;
@@ -255,6 +256,9 @@
                         if (response.status === 1) {
                             // 注册成功，切换到登录界面
                             login_title.click();
+
+                            document.getElementById("login-username").value = username;
+                            document.getElementById("login-password").value = password;
                         }
                     } else {
                         alert("注册失败");

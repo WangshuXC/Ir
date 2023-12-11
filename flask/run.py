@@ -4,7 +4,7 @@ import json
 import os
 
 app = Flask(__name__)
-es = Elasticsearch(["http://localhost:9200"])
+es = Elasticsearch(hosts="http://elastic:n154Sh+KyweYH-+As92v@127.0.0.1:9200")
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -47,15 +47,18 @@ def user():
 
 @app.route("/search", methods=["GET"])
 def search():
-    return render_template("search.html")
+    q = request.args.get("q", "")
+    if q:
+        return render_template("search_detail.html", q=q)
+    else:
+        return render_template("search.html")
 
 
-@app.route("/search=<query>", methods=["GET"])
-def search_results(query):
-    # res = es.search(index="my_index", body={"query": {"match": {"content": query}}})
-    # hits = res["hits"]["hits"]
-    # return render_template("search_results.html", hits=hits)
-    return f"u r searching '{query}'"
+# @app.route("/search_detail", methods=["GET"])
+# def search_results():
+#     query = request.args.get("query", "")
+#     return render_template("search_detail.html", query=query)
+#     # return f"u r searching '{query}'"
 
 
 if __name__ == "__main__":

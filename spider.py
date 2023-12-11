@@ -33,12 +33,10 @@ def spider_index():
                                 "auth_intro": item["intro"],
                                 "dynasty": item["dynasty"],
                                 "type": type,
-                                "body": re.sub(
-                                    "<span.*?>.*?</span>", "", item["body"]
-                                ),  # 主体
-                                "translation": item["translation"],  # 翻译
-                                "explanation": item["explanation"],  # 注释
-                                "appreciation": item["appreciation"],  # 赏析
+                                "body": re.sub("<span.*?>.*?</span>", "", item["body"]),
+                                "translation": item["translation"],
+                                "explanation": item["explanation"],
+                                "appreciation": item["appreciation"],
                                 "related": retry_call(
                                     spider_link,
                                     fargs=[f"https://www.gushici.com/t_{item['id']}"],

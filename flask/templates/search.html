@@ -3,6 +3,7 @@
 
 <head>
     <title>搜索</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}" type="image/x-icon">
     <style>
         body {
             display: flex;
@@ -82,8 +83,12 @@
         function search() {
             var query = document.getElementById('searchText').value;
 
+            if (query.trim() === '') {
+                return;
+            }
+
             setTimeout(function () {
-                window.location.href = "/search=" + query;
+                window.location.href = "/search?q=" + query;
             }, 500);
         }
     </script>
