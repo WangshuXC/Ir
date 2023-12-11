@@ -54,23 +54,18 @@
         }
 
         #searchText {
+            width: 100%;
+            height: 100%;
             background-color: #ffffff00;
         }
     </style>
-</head>
-
-<body>
-    <div class="search-box">
-        <input type="text" id='searchText' placeholder="请输入搜索内容" onfocus="this.placeholder=''"
-            onclick="expandSearchBox()" onblur="shrinkSearchBox(),this.placeholder='请输入搜索内容'">
-        <input type="submit" id="searchBtn" value="搜索">
-    </div>
 
     <script>
         function expandSearchBox() {
             var searchBox = document.querySelector('.search-box');
             searchBox.style.width = '50%';
             searchBox.style.height = '50px';
+            searchBox.style.backdropFilter = 'blur(10px)';
             document.getElementById('searchBtn').style.fontSize = '20px';
             document.getElementById('searchText').style.fontSize = '20px';
         }
@@ -79,10 +74,27 @@
             var searchBox = document.querySelector('.search-box');
             searchBox.style.width = '';
             searchBox.style.height = '';
+            searchBox.style.backdropFilter = '';
             document.getElementById('searchBtn').style.fontSize = '';
             document.getElementById('searchText').style.fontSize = '';
         }
+
+        function search() {
+            var query = document.getElementById('searchText').value;
+
+            setTimeout(function () {
+                window.location.href = "/search=" + query;
+            }, 500);
+        }
     </script>
+</head>
+
+<body>
+    <div class="search-box">
+        <input type="text" id='searchText' placeholder="请输入搜索内容" onfocus="this.placeholder=''"
+            onclick="expandSearchBox()" onblur="shrinkSearchBox(),this.placeholder='请输入搜索内容'">
+        <input type="submit" id="searchBtn" value="搜索" onclick="search(),expandSearchBox()">
+    </div>
 </body>
 
 </html>
