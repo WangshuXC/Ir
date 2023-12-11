@@ -1,0 +1,7 @@
+Flask
+elasticsearch
+networkx
+requests
+retry
+beautifulsoup4
+tqdm

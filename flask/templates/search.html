@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>搜索</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+
+            background: url("/static/bg.png") no-repeat center;
+            background-size: cover;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            transition: width 1s ease, height 0.5s ease;
+            position: relative;
+            top: -20vh;
+
+            width: 30%;
+            height: 30px;
+        }
+
+        .search-box input[type="text"] {
+            margin-right: 10px;
+            padding: 5px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            transition: font-size 0.5s ease;
+        }
+
+        .search-box input[type="submit"] {
+            padding: 5px 10px;
+            background-color: #73634f;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            position: absolute;
+            right: 15px;
+            transition: font-size 0.5s ease;
+
+            width: 10%;
+            height: 70%;
+        }
+
+        #searchText {
+            background-color: #ffffff00;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="search-box">
+        <input type="text" id='searchText' placeholder="请输入搜索内容" onfocus="this.placeholder=''"
+            onclick="expandSearchBox()" onblur="shrinkSearchBox(),this.placeholder='请输入搜索内容'">
+        <input type="submit" id="searchBtn" value="搜索">
+    </div>
+
+    <script>
+        function expandSearchBox() {
+            var searchBox = document.querySelector('.search-box');
+            searchBox.style.width = '50%';
+            searchBox.style.height = '50px';
+            document.getElementById('searchBtn').style.fontSize = '20px';
+            document.getElementById('searchText').style.fontSize = '20px';
+        }
+
+        function shrinkSearchBox() {
+            var searchBox = document.querySelector('.search-box');
+            searchBox.style.width = '';
+            searchBox.style.height = '';
+            document.getElementById('searchBtn').style.fontSize = '';
+            document.getElementById('searchText').style.fontSize = '';
+        }
+    </script>
+</body>
+
+</html>
