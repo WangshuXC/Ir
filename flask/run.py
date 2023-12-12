@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, jsonify
 from elasticsearch import Elasticsearch
+import datetime
 import json
 import os
 
@@ -49,7 +50,42 @@ def user():
 def search():
     q = request.args.get("q", "")
     if q:
-        return render_template("search_detail.html", q=q)
+        now = datetime.datetime.now()
+        timestamp = now.strftime("[%d/%b/%Y %H:%M:%S]")
+        print(f"{timestamp} 用户搜索了{q}")
+        query = {
+            "explain": True,
+            "query": {
+                "multi_match": {
+                    "query": q,
+                    "fields": [
+                        "body",
+                        "title",
+                        "auth",
+                        "appreciation",
+                    ],
+                }
+            },
+        }
+
+        data = []
+
+        # 执行查询
+        result = es.search(index="data", body=query)
+
+        # 处理查询结果
+        for hit in result["hits"]["hits"]:
+            data.append(
+                {
+                    "title": hit["_source"]["title"],
+                    "url": hit["_source"]["url"],
+                    "content": hit["_source"]["body"],
+                    "dynasty": hit["_source"]["dynasty"],
+                    "auth": hit["_source"]["auth"],
+                }
+            )
+
+        return render_template("search_detail.html", q=q, data=data)
     else:
         return render_template("search.html")
 
