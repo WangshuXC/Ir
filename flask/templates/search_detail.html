@@ -299,12 +299,19 @@
 
         function search() {
             var q = document.getElementById('searchText').value;
+            var q1 = document.getElementById('searchText-q1').value;
+            var q2 = document.getElementById('searchText-q2').value;
+            var q3 = document.getElementById('searchText-q3').value;
 
             if (q.trim() === '') {
                 return;
             }
 
-            window.location.href = "/search?q=" + q;
+            if (q1.trim() !== '' || q2.trim() !== '' || q3.trim() !== '') {
+                window.location.href = "/search?q=" + q + "&q1=" + q1 + "&q2=" + q2 + "&q3=" + q3;
+            } else {
+                window.location.href = "/search?q=" + q;
+            }
         }
 
         function onSearchTextInputKeyUp(event) {
@@ -419,7 +426,7 @@
                     包含任意关键词
                     <span class="split">|</span>
                 </span>
-                <input name="q1" id='searchText'>
+                <input name="q1" id='searchText-q1'>
             </div>
 
             <div class="advenced-input" id="q2">
@@ -427,7 +434,7 @@
                     包含完整关键词
                     <span class="split">|</span>
                 </span>
-                <input name="q2" id='searchText'>
+                <input name="q2" id='searchText-q2'>
             </div>
 
             <div class="advenced-input" id="q3">
@@ -435,7 +442,7 @@
                     不要包含关键词
                     <span class="split">|</span>
                 </span>
-                <input name="q3" id='searchText'>
+                <input name="q3" id='searchText-q3'>
             </div>
 
         </div>

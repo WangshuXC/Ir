@@ -8,6 +8,81 @@ app = Flask(__name__)
 es = Elasticsearch(hosts="http://elastic:n154Sh+KyweYH-+As92v@127.0.0.1:9200")
 
 
+def generate_query(q):
+    return {
+        "query": {
+            "bool": {
+                "should": [
+                    {
+                        "multi_match": {
+                            "query": q,
+                            "fields": [
+                                "body",
+                                "title",
+                                "auth",
+                            ],
+                        }
+                    },
+                    {
+                        "bool": {
+                            "should": [
+                                {"match_phrase": {"body": q}},
+                                {"match_phrase": {"title": q}},
+                                {"match_phrase": {"auth": q}},
+                            ]
+                        }
+                    },
+                ]
+            }
+        },
+        "highlight": {
+            "pre_tags": ["<strong>"],
+            "post_tags": ["</strong>"],
+            "fields": {"body": {}, "title": {}, "auth": {}, "appreciation": {}},
+        },
+    }
+
+
+def generate_custom_query(q1, q2, q3):
+    query = {
+        "query": {"bool": {"must": [], "must_not": []}},
+        "highlight": {
+            "pre_tags": ["<strong>"],
+            "post_tags": ["</strong>"],
+            "fields": {"body": {}, "title": {}, "auth": {}, "appreciation": {}},
+        },
+    }
+
+    if q1:
+        query["query"]["bool"]["must"].append(
+            {"match": {"body": {"query": q1, "operator": "or"}}}
+        )
+        query["query"]["bool"]["must"].append(
+            {"match": {"title": {"query": q1, "operator": "or"}}}
+        )
+        query["query"]["bool"]["must"].append(
+            {"match": {"auth": {"query": q1, "operator": "or"}}}
+        )
+
+    if q2:
+        query["query"]["bool"]["must"].append({"match_phrase": {"body": q2}})
+        query["query"]["bool"]["must"].append({"match_phrase": {"title": q2}})
+        query["query"]["bool"]["must"].append({"match_phrase": {"auth": q2}})
+
+    if q3:
+        query["query"]["bool"]["must_not"].append(
+            {"match": {"body": {"query": q3, "operator": "or"}}}
+        )
+        query["query"]["bool"]["must_not"].append(
+            {"match": {"title": {"query": q3, "operator": "or"}}}
+        )
+        query["query"]["bool"]["must_not"].append(
+            {"match": {"auth": {"query": q3, "operator": "or"}}}
+        )
+
+    return query
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     return render_template("login.html")
@@ -49,6 +124,9 @@ def user():
 @app.route("/search", methods=["GET"])
 def search():
     q = request.args.get("q", "")
+    q1 = request.args.get("q1", "")
+    q2 = request.args.get("q2", "")
+    q3 = request.args.get("q3", "")
     if q:
         now = datetime.datetime.now()
         timestamp = now.strftime("[%d/%b/%Y %H:%M:%S]")
