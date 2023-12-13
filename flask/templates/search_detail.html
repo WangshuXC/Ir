@@ -7,8 +7,7 @@
     <style>
         body {
             display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 100vw;
             height: 100vh;
             overflow: hidden;
 
@@ -16,15 +15,135 @@
             background-size: cover;
         }
 
-        .container {
+        #line {
+            height: 1px;
+            width: 50vw;
+            background-color: #73634f;
+        }
+
+        #blank_ {
+            height: 20px;
+        }
+
+        .search-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
+            position: absolute;
+
+            max-height: 92vh;
+            top: 5vh;
+            left: 5vw;
+        }
+
+        .right-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: absolute;
+
+            transition: width 1s ease, height 0.5s ease;
+
+            top: 5vh;
+            right: 15vw;
+            width: 20vw;
+
+            max-height: 92vh;
+        }
+
+        .advenced-search {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            border: 1px solid #ccc;
+            border-radius: 10px;
+
+            margin-bottom: 1.5vh;
+
+            padding: 0 15px;
+
+            width: 90%;
+            height: 3vh;
+
+            overflow: hidden;
+        }
+
+        .icon {
+            width: 20px;
+            height: 20px;
+            fill: #73634f;
+
+            transform: rotate(90deg);
+            transition: 0.5s ease;
+        }
+
+        .advenced-set {
+            display: flex;
+            align-items: stretch;
+            justify-content: flex-start;
+            flex-direction: column;
 
 
-            top: 1vh;
-            left: -15vw;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+
+            padding: 10px 15px;
+
+            width: 90%;
+            height: 20vh;
+        }
+
+        .advenced-set button {
+            background-color: #73634f;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            width: 90%;
+            height: 3vh;
+
+            margin: 20px 20px;
+        }
+
+        .advenced-input {
+            display: flex;
+            align-items: center;
+
+            background-color: rgba(221, 221, 221, 0.6);
+            border-radius: 10px;
+            padding-inline: 20px;
+            font-size: 13px;
+
+            margin-bottom: 10px;
+        }
+
+        .advenced-input-prepend {
+            white-space: nowrap;
+            margin-right: 5px;
+        }
+
+        .advenced-set input[id="searchText"] {
+            margin-right: 10px;
+            padding: 5px;
+            border: none;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .recommendation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            border: 1px solid #ccc;
+            border-radius: 10px;
+
+            margin-top: 2vh;
+
+            width: 100%;
+            height: 10vh;
+
+            overflow: hidden;
         }
 
         .search-box {
@@ -53,7 +172,7 @@
             position: relative;
 
             width: 55vw;
-            height: 85vh;
+            max-height: 85vh;
 
             overflow-y: scroll;
         }
@@ -66,13 +185,13 @@
         .result-item {
             display: flex;
             flex-direction: column;
-            align-items: center;
+            align-items: flex-start;
 
             border: 1px solid #ccc;
             border-radius: 15px;
             background-color: rgba(221, 221, 221, 0.6);
 
-            width: 90%;
+            width: 50vw;
             margin-top: 20px;
             margin-bottom: 20px;
 
@@ -84,19 +203,55 @@
             text-decoration: none;
         }
 
+        .result-item h1 {
+            margin-top: 0;
+            margin-bottom: 5px;
+            margin-left: 20px;
+            font-size: 30px;
+        }
+
         .result-item h3 {
+            margin-top: 10px;
             margin-bottom: 0px;
+            margin-left: 20px;
             font-size: 25px;
         }
 
         .result-item h4 {
             margin-top: 5px;
-            margin-bottom: 8px;
+            margin-bottom: 15px;
+            margin-left: 20px;
             font-size: 15px;
         }
 
-        .result-item p {
-            margin: 0;
+        .highlight-box {
+            display: none;
+            height: auto;
+        }
+
+        .highlight {
+            align-items: center;
+            background-color: #73634f6d;
+            color: #fff;
+            border-radius: 10px;
+            padding-inline: 30px;
+            padding-top: 20px;
+            margin-bottom: 10px;
+
+            width: auto;
+        }
+
+        .highlight strong {
+            /*color: #73634f;*/
+            color: rgba(0, 0, 0, 0.5);
+        }
+
+        .highlight p {
+            margin: 5px;
+        }
+
+        .content p {
+            margin: 0 20px;
             font-size: 20px;
         }
 
@@ -133,10 +288,13 @@
     </style>
 
     <script>
+        let isRotated = false;
+        let isHighlight = false;
 
         window.onload = function () {
             var q = "{{ q }}";
             document.getElementById('searchText').value = q;
+            toggleAdvancedSearch()
         };
 
         function search() {
@@ -149,28 +307,143 @@
             window.location.href = "/search?q=" + q;
         }
 
+        function onSearchTextInputKeyUp(event) {
+            var query = document.getElementById('searchText').value;
+            if (event.keyCode === 13 && query !== '') {
+                search();
+            }
+        }
+
+        function toggleAdvancedSearch() {
+            const icon = document.querySelector('.icon');
+            const setContainer = document.querySelector('.advenced-set');
+
+            isRotated = !isRotated;
+
+            icon.style.transform = isRotated ? 'rotate(-90deg)' : '';
+
+            if (isRotated) {
+                setContainer.style.display = 'none';
+            } else {
+                setContainer.style.display = 'flex';
+            }
+        }
+
+        function toggleHighLight() {
+            const setContainers = document.querySelectorAll('.highlight-box');
+            const button = document.getElementById('highLightBtn');
+
+            for (let i = 0; i < setContainers.length; i++) {
+                const setContainer = setContainers[i];
+                if (isHighlight) {
+                    setContainer.style.display = 'none';
+                } else {
+                    setContainer.style.display = 'block';
+                }
+            }
+            isHighlight = !isHighlight;
+            if (isHighlight) {
+                button.textContent = '关闭搜索高亮';
+                button.style.backgroundColor = '#b5aea6';
+            } else {
+                button.textContent = '开启搜索高亮';
+                button.style.backgroundColor = '#73634f';
+            }
+        }
+
+
     </script>
 </head>
 
 <body>
-    <div class="container">
+    <div class="search-container">
         <div class="search-box">
-            <input type="text" id='searchText'>
+            <input type="text" id='searchText' onkeyup="onSearchTextInputKeyUp(event)">
             <input type="submit" id="searchBtn" value="搜索" onclick="search()">
         </div>
         <div class="result-box" id='resultBox'>
+            {% if data %}
             {% for result in data %}
             <div class="result-item">
+                {% if result.body_highlight %}
+                <div class="highlight-box">
+                    <div class="highlight">
+                        {% for highlight_item in result.body_highlight %}
+                        {{ highlight_item | safe }}
+                        <div id="blank_"></div>
+                        {% endfor %}
+                    </div>
+                    <div id="line"></div>
+                </div>
+                {% endif %}
+
                 <h3>
-                    <a href="{{ result.url }}" target="_blank">{{ result.title }}</a>
+                    <a href="{{ result.url }}" target="_blank">
+                        {% if result.title_highlight %}
+                        {{ result.title_highlight[0] | safe }}
+                        {% else %}
+                        {{ result.title | safe }}
+                        {% endif %}
+                    </a>
                 </h3>
                 <h4>{{result.dynasty}}·{{result.auth}}</h4>
-                {{ result.content | safe }}
+                <div class="content">
+                    {{ result.content | safe }}
+                </div>
             </div>
             {% endfor %}
+            {% else %}
+            <div class="result-item">
+                <h1>似乎没有找到与 {{q}} 相关的内容</h1>
+                <img src="static/notFound.png" alt="notFound">
+            </div>
+            {% endif %}
         </div>
-
     </div>
+    <div class="right-container">
+        <div class="advenced-search" onclick="toggleAdvancedSearch()">
+            <span class="name">高级搜索</span>
+            <span class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" data-pointer="none" viewBox="0 0 16 16">
+                    <path
+                        d="m9.188 7.999-3.359 3.359a.75.75 0 1 0 1.061 1.061l3.889-3.889a.75.75 0 0 0 0-1.061L6.89 3.58a.75.75 0 1 0-1.061 1.061l3.359 3.358z">
+                    </path>
+                </svg>
+            </span>
+        </div>
+        <div class="advenced-set">
+            <button id="highLightBtn" onclick="toggleHighLight()">开启搜索高亮</button>
+
+            <div class="advenced-input" id="q1">
+                <span class="advenced-input-prepend">
+                    包含任意关键词
+                    <span class="split">|</span>
+                </span>
+                <input name="q1" id='searchText'>
+            </div>
+
+            <div class="advenced-input" id="q2">
+                <span class="advenced-input-prepend">
+                    包含完整关键词
+                    <span class="split">|</span>
+                </span>
+                <input name="q2" id='searchText'>
+            </div>
+
+            <div class="advenced-input" id="q3">
+                <span class="advenced-input-prepend">
+                    不要包含关键词
+                    <span class="split">|</span>
+                </span>
+                <input name="q3" id='searchText'>
+            </div>
+
+        </div>
+        <div class="recommendation">
+
+        </div>
+    </div>
+
 </body>
 
 </html>

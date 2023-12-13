@@ -91,13 +91,21 @@
                 window.location.href = "/search?q=" + query;
             }, 500);
         }
+
+        function onSearchTextInputKeyUp(event) {
+            var query = document.getElementById('searchText').value;
+            if (event.keyCode === 13 && query !== '') {
+                search();
+            }
+        }
     </script>
 </head>
 
 <body>
     <div class="search-box">
         <input type="text" id='searchText' placeholder="请输入搜索内容" onfocus="this.placeholder=''"
-            onclick="expandSearchBox()" onblur="shrinkSearchBox(),this.placeholder='请输入搜索内容'">
+            onclick="expandSearchBox()" onblur="shrinkSearchBox(),this.placeholder='请输入搜索内容'"
+            onkeyup="onSearchTextInputKeyUp(event)">
         <input type="submit" id="searchBtn" value="搜索" onclick="search(),expandSearchBox()">
     </div>
 </body>

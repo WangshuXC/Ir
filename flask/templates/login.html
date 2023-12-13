@@ -282,7 +282,12 @@
                     if (xhr.status === 200) {
                         let response = JSON.parse(xhr.responseText);
                         alert(response.msg);
-                        window.location.href = "/search"
+                        if (response.status === 1) {
+                            window.location.href = "/search"
+                        }
+                        else {
+                            document.getElementById("login-password").value = "";
+                        }
                     } else {
                         alert("登录失败");
                     }

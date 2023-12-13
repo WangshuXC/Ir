@@ -52,19 +52,38 @@ def search():
     if q:
         now = datetime.datetime.now()
         timestamp = now.strftime("[%d/%b/%Y %H:%M:%S]")
-        print(f"{timestamp} 用户搜索了{q}")
+        user_ip = request.remote_addr
+        print(f"{user_ip} - - {timestamp} [普通搜索]了 ‘{q}’ -")
         query = {
-            "explain": True,
             "query": {
-                "multi_match": {
-                    "query": q,
-                    "fields": [
-                        "body",
-                        "title",
-                        "auth",
-                        "appreciation",
-                    ],
+                "bool": {
+                    "should": [
+                        {
+                            "multi_match": {
+                                "query": q,
+                                "fields": [
+                                    "body",
+                                    "title",
+                                    "auth",
+                                ],
+                            }
+                        },
+                        {
+                            "bool": {
+                                "should": [
+                                    {"match_phrase": {"body": q}},
+                                    {"match_phrase": {"title": q}},
+                                    {"match_phrase": {"auth": q}},
+                                ]
+                            }
+                        },
+                    ]
                 }
+            },
+            "highlight": {
+                "pre_tags": ["<strong>"],
+                "post_tags": ["</strong>"],
+                "fields": {"body": {}, "title": {}, "auth": {}, "appreciation": {}},
             },
         }
 
@@ -75,6 +94,12 @@ def search():
 
         # 处理查询结果
         for hit in result["hits"]["hits"]:
+            highlight = hit.get("highlight", {})
+            body_highlight = highlight.get("body", [])
+            title_highlight = highlight.get("title", [])
+            auth_highlight = highlight.get("auth", [])
+            appreciation_highlight = highlight.get("appreciation", [])
+
             data.append(
                 {
                     "title": hit["_source"]["title"],
@@ -82,6 +107,10 @@ def search():
                     "content": hit["_source"]["body"],
                     "dynasty": hit["_source"]["dynasty"],
                     "auth": hit["_source"]["auth"],
+                    "body_highlight": body_highlight,
+                    "title_highlight": title_highlight,
+                    "auth_highlight": auth_highlight,
+                    "appreciation_highlight": appreciation_highlight,
                 }
             )
 
@@ -90,12 +119,5 @@ def search():
         return render_template("search.html")
 
 
-# @app.route("/search_detail", methods=["GET"])
-# def search_results():
-#     query = request.args.get("query", "")
-#     return render_template("search_detail.html", query=query)
-#     # return f"u r searching '{query}'"
-
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
