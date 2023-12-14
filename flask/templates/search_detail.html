@@ -91,7 +91,7 @@
             padding: 10px 15px;
 
             width: 90%;
-            height: 20vh;
+            max-height: 50vh;
         }
 
         .advenced-set button {
@@ -122,12 +122,45 @@
             margin-right: 5px;
         }
 
-        .advenced-set input[id="searchText"] {
+        .advenced-set input[type="searchInput"] {
             margin-right: 10px;
             padding: 5px;
             border: none;
             outline: none;
             font-size: 13px;
+
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff00;
+        }
+
+        .button-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: auto;
+            margin: 0;
+        }
+
+        .button-group button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            width: 20%;
+            border: none;
+
+            background-color: #b5aea6;
+            color: #fff;
+            font-size: 12px;
+
+            margin-top: 0;
+            margin-bottom: 30px;
+        }
+
+        .circle-button.active {
+            background-color: #73634f;
         }
 
         .recommendation {
@@ -291,9 +324,44 @@
         let isRotated = false;
         let isHighlight = false;
 
+        let iftitle = false;
+        let ifauth = false;
+        let ifbody = false;
+
         window.onload = function () {
+            const titleBtn = document.getElementById("b-title");
+            const authBtn = document.getElementById("b-auth");
+            const bodyBtn = document.getElementById("b-body");
+
             var q = "{{ q }}";
+            var q1 = "{{ q1 }}";
+
+            var q2 = "{{ q2 }}";
+            var q2t = "{{ q2t }}";
+            var q2a = "{{ q2a }}";
+            var q2b = "{{ q2b }}";
+
+            if (q2t === "true") {
+                iftitle = !iftitle;
+                toggleColor(titleBtn, iftitle);
+            }
+
+            if (q2a === "true") {
+                ifauth = !ifauth;
+                toggleColor(authBtn, ifauth);
+            }
+
+            if (q2b === "true") {
+                iftitle = !iftitle;
+                toggleColor(bodyBtn, ifbody);
+            }
+
+            var q3 = "{{ q3 }}";
+
             document.getElementById('searchText').value = q;
+            document.getElementById('searchText-q1').value = q1;
+            document.getElementById('searchText-q2').value = q2;
+            document.getElementById('searchText-q3').value = q3;
             toggleAdvancedSearch()
         };
 
@@ -303,12 +371,12 @@
             var q2 = document.getElementById('searchText-q2').value;
             var q3 = document.getElementById('searchText-q3').value;
 
-            if (q.trim() === '') {
+            if (q.trim() === '' && q1.trim() === '' && q2.trim() === '' && q3.trim() === '') {
                 return;
             }
 
             if (q1.trim() !== '' || q2.trim() !== '' || q3.trim() !== '') {
-                window.location.href = "/search?q=" + q + "&q1=" + q1 + "&q2=" + q2 + "&q3=" + q3;
+                window.location.href = "/search?q1=" + q1 + "&q2=" + q2 + "&q2t=" + iftitle + "&q2a=" + ifauth + "&q2b=" + ifbody + "&q3=" + q3;
             } else {
                 window.location.href = "/search?q=" + q;
             }
@@ -358,6 +426,30 @@
             }
         }
 
+        function toggleColor(button, flag) {
+            button.classList.toggle('active', flag);
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const titleBtn = document.getElementById("b-title");
+            const authBtn = document.getElementById("b-auth");
+            const bodyBtn = document.getElementById("b-body");
+
+            titleBtn.addEventListener("click", () => {
+                iftitle = !iftitle;
+                toggleColor(titleBtn, iftitle);
+            });
+
+            authBtn.addEventListener("click", () => {
+                ifauth = !ifauth;
+                toggleColor(authBtn, ifauth);
+            });
+
+            bodyBtn.addEventListener("click", () => {
+                ifbody = !ifbody;
+                toggleColor(bodyBtn, ifbody);
+            });
+        });
 
     </script>
 </head>
@@ -426,15 +518,21 @@
                     包含任意关键词
                     <span class="split">|</span>
                 </span>
-                <input name="q1" id='searchText-q1'>
+                <input name="q1" type="searchInput" id='searchText-q1'>
             </div>
-
+            <div id="blank_"></div>
             <div class="advenced-input" id="q2">
                 <span class="advenced-input-prepend">
                     包含完整关键词
                     <span class="split">|</span>
                 </span>
-                <input name="q2" id='searchText-q2'>
+                <input name="q2" type="searchInput" id='searchText-q2'>
+            </div>
+
+            <div class="button-group">
+                <button class="circle-button" id="b-title">标题</button>
+                <button class="circle-button" id="b-auth">作者</button>
+                <button class="circle-button" id="b-body">内容</button>
             </div>
 
             <div class="advenced-input" id="q3">
@@ -442,7 +540,7 @@
                     不要包含关键词
                     <span class="split">|</span>
                 </span>
-                <input name="q3" id='searchText-q3'>
+                <input name="q3" type="searchInput" id='searchText-q3'>
             </div>
 
         </div>
