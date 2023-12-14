@@ -1,10 +1,11 @@
-from flask import Flask, request, render_template, jsonify
+from flask import Flask, request, session, render_template, jsonify
 from elasticsearch import Elasticsearch
 import datetime
 import json
 import os
 
 app = Flask(__name__)
+app.secret_key = "lxcSoHandsome"
 es = Elasticsearch(hosts="http://elastic:n154Sh+KyweYH-+As92v@127.0.0.1:9200")
 
 
@@ -137,6 +138,7 @@ def user():
     if request.form.get("type") == "login":
         # 登录操作
         if username in users and users[username]["password"] == password:
+            session["username"] = username
             return jsonify({"status": 1, "msg": "登录成功"})
         else:
             return jsonify({"status": 0, "msg": "用户名或密码错误"})
@@ -145,7 +147,7 @@ def user():
         # 注册操作
         if username not in users:
             # 创建新用户
-            users[username] = {"password": password}
+            users[username] = {"password": password, "history": []}
             # 更新user.json文件
             with open(os.path.join(BASE_DIR, "user.json"), "w", encoding="utf-8") as f:
                 json.dump(users, f)
@@ -166,6 +168,12 @@ def search():
 
     q3 = request.args.get("q3", "")
 
+    # 读取user.json文件
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    with open(os.path.join(BASE_DIR, "user.json"), "r", encoding="utf-8") as f:
+        users = json.load(f)
+    username = session.get("username")
+
     now = datetime.datetime.now()
     timestamp = now.strftime("[%d/%b/%Y %H:%M:%S]")
     user_ip = request.remote_addr
@@ -174,6 +182,9 @@ def search():
 
     if q and not (q1 or q2 or q3):
         print(f"{user_ip} - - {timestamp} [普通搜索]了 ‘{q}’ -")
+
+        users[username]["history"].append(q)
+
         query = generate_query(q)
 
         # 执行查询
@@ -201,9 +212,23 @@ def search():
                 }
             )
 
+        # 更新user.json文件
+        with open(os.path.join(BASE_DIR, "user.json"), "w", encoding="utf-8") as f:
+            json.dump(users, f, ensure_ascii=False, indent=4)
+
         return render_template("search_detail.html", q=q, data=data)
     elif q1 or q2 or q3:
         print(f"{user_ip} - - {timestamp} [高级搜索]了 ‘{q1}’, ‘{q2}’, ‘{q3}’ -")
+        if q1:
+            items = q1.split()
+            for item in items:
+                users[username]["history"].append(item)
+
+        if q2:
+            items = q2.split()
+            for item in items:
+                users[username]["history"].append(item)
+
         query = generate_custom_query(q1, q2, q3, q2t, q2a, q2b)
         print(query)
         # 执行查询
@@ -230,7 +255,11 @@ def search():
                     "appreciation_highlight": appreciation_highlight,
                 }
             )
-        print(q2t, q2a, q2b)
+
+        # 更新user.json文件
+        with open(os.path.join(BASE_DIR, "user.json"), "w", encoding="utf-8") as f:
+            json.dump(users, f, ensure_ascii=False, indent=4)
+
         return render_template(
             "search_detail.html",
             q1=q1,

@@ -358,6 +358,10 @@
 
             var q3 = "{{ q3 }}";
 
+            if (q1 !== "" || q2 !== "" || q3 !== "") {
+                toggleAdvancedSearch();
+            }
+
             document.getElementById('searchText').value = q;
             document.getElementById('searchText-q1').value = q1;
             document.getElementById('searchText-q2').value = q2;
