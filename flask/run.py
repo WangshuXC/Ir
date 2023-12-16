@@ -1,8 +1,11 @@
 from flask import Flask, request, session, render_template, jsonify
 from elasticsearch import Elasticsearch
+from collections import Counter
 import datetime
 import json
+import math
 import os
+import re
 
 app = Flask(__name__)
 app.secret_key = "lxcSoHandsome"
@@ -117,6 +120,54 @@ def generate_custom_query(q1, q2, q3, q2t, q2a, q2b):
     return query
 
 
+def re_sort(results, history):
+    def tokenize(text):
+        text = re.sub(r"<.*?>", "", text)
+        tokens = text.split()
+        merged_text = " ".join(tokens)
+        return merged_text
+
+    def cosine_similarity(a, b):
+        a_tokens = tokenize(a)
+        b_tokens = tokenize(b)
+        a_vector = Counter(a_tokens)
+        b_vector = Counter(b_tokens)
+
+        intersection = set(a_vector.keys()) & set(b_vector.keys())
+        dot_product = sum(a_vector[x] * b_vector[x] for x in intersection)
+
+        norm_a = math.sqrt(sum(a_vector[x] ** 2 for x in a_vector))
+        norm_b = math.sqrt(sum(b_vector[x] ** 2 for x in b_vector))
+
+        similarity = dot_product / (norm_a * norm_b)
+        return similarity
+
+    def calculate_similarity(search_results, search_history):
+        similarities = []
+        for result in search_results:
+            r_text = result["title"] + " " + result["auth"] + " " + result["content"]
+            for history in search_history:
+                similarity = cosine_similarity(r_text, history)
+                similarities.append(similarity)
+
+        return similarities
+
+    def sort_results(search_results, search_history):
+        similarities = calculate_similarity(search_results, search_history)
+        for i, result in enumerate(search_results):
+            score_weight = result["score"] * 0.1
+            similarity_weight = similarities[i] * 10
+            pagerank_weight = result["pagerank"] * 1000000
+            total_weight = score_weight + similarity_weight + pagerank_weight
+            result["total_weight"] = total_weight
+        sorted_results = sorted(
+            search_results, key=lambda x: x["total_weight"], reverse=True
+        )
+        return sorted_results
+
+    return sort_results(results, history)
+
+
 def recommendation_query(history):
     if history:
         query = {
@@ -164,6 +215,13 @@ def index():
 @app.route("/user", methods=["POST"])
 def user():
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+    user_json_path = os.path.join(BASE_DIR, "user.json")
+    if not os.path.exists(user_json_path):
+        # 创建目录和文件
+        os.makedirs(BASE_DIR, exist_ok=True)
+        with open(user_json_path, "w", encoding="utf-8") as f:
+            json.dump({}, f)
     # 读取user.json文件
     with open(os.path.join(BASE_DIR, "user.json"), "r", encoding="utf-8") as f:
         users = json.load(f)
@@ -244,6 +302,8 @@ def search():
                     "content": hit["_source"]["body"],
                     "dynasty": hit["_source"]["dynasty"],
                     "auth": hit["_source"]["auth"],
+                    "score": hit["_score"],
+                    "pagerank": hit["_source"]["pagerank"],
                     "body_highlight": body_highlight,
                     "title_highlight": title_highlight,
                     "auth_highlight": auth_highlight,
@@ -251,17 +311,18 @@ def search():
                 }
             )
 
+        if history:
+            data = re_sort(data, history)
+
         users[username]["history"].append(q)
         # 更新user.json文件
         with open(os.path.join(BASE_DIR, "user.json"), "w", encoding="utf-8") as f:
             json.dump(users, f, ensure_ascii=False, indent=4)
-
         return render_template("search_detail.html", q=q, data=data, rec=recommendation)
     elif q1 or q2 or q3:
-        print(f"{user_ip} - - {timestamp} [高级搜索]了 ‘{q1}’, ‘{q2}’, ‘{q3}’ -")
+        print(f"{user_ip} - - {timestamp} [高级搜索]了 包含任意‘{q1}’, 包含完整‘{q2}’, 不包含‘{q3}’ -")
 
         query = generate_custom_query(q1, q2, q3, q2t, q2a, q2b)
-        print(query)
         # 执行查询
         result = es.search(index="data", body=query)
 
@@ -280,12 +341,17 @@ def search():
                     "content": hit["_source"]["body"],
                     "dynasty": hit["_source"]["dynasty"],
                     "auth": hit["_source"]["auth"],
+                    "score": hit["_score"],
+                    "pagerank": hit["_source"]["pagerank"],
                     "body_highlight": body_highlight,
                     "title_highlight": title_highlight,
                     "auth_highlight": auth_highlight,
                     "appreciation_highlight": appreciation_highlight,
                 }
             )
+
+        if history:
+            data = re_sort(data, history)
 
         if q1:
             items = q1.split()
@@ -296,7 +362,6 @@ def search():
             items = q2.split()
             for item in items:
                 users[username]["history"].append(item)
-
         # 更新user.json文件
         with open(os.path.join(BASE_DIR, "user.json"), "w", encoding="utf-8") as f:
             json.dump(users, f, ensure_ascii=False, indent=4)
