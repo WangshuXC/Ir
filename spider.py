@@ -18,6 +18,7 @@ def spider_index():
             for page in range(num_pages):
                 page_url = url + str(page)
                 try:
+                    time.sleep(1.5)
                     response = requests.get(page_url)
                     if response.status_code == 200:
                         json_data = response.json()
@@ -107,7 +108,7 @@ def spider_index():
 
     file_path = os.path.join(
         os.path.join(os.path.dirname(os.path.abspath(__file__))),
-        "data.json",
+        "data1.json",
     )
 
     with open(file_path, "w", encoding="utf-8") as file:
@@ -117,6 +118,7 @@ def spider_index():
 @retry.retry(tries=3, delay=10)
 def spider_link(url):
     response = requests.get(url)
+    time.sleep(1)
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, "html.parser")
         links = soup.find_all("a", class_="poem-title")
@@ -153,10 +155,10 @@ def add_pagerank(file_path):
 
 
 if __name__ == "__main__":
-    if os.path.exists("data.json"):
+    if os.path.exists("data1.json"):
         pass
     else:
         spider_index()
         print("初次爬取成功")
 
-    add_pagerank("data.json")
+    add_pagerank("data1.json")

@@ -117,6 +117,44 @@ def generate_custom_query(q1, q2, q3, q2t, q2a, q2b):
     return query
 
 
+def recommendation_query(history):
+    if history:
+        query = {
+            "query": {
+                "more_like_this": {
+                    "fields": ["body", "auth", "title"],
+                    "like": history,
+                    "min_term_freq": 1,
+                    "max_query_terms": 12,
+                }
+            }
+        }
+    else:
+        query = {
+            "query": {
+                "more_like_this": {
+                    "fields": ["auth"],
+                    "like": ["李白", "杜甫", "辛弃疾", "孟浩然"],
+                    "min_term_freq": 1,
+                    "max_query_terms": 12,
+                }
+            }
+        }
+    recommendation = es.search(index="data", body=query)
+    rec = []
+    for hit in recommendation["hits"]["hits"]:
+        rec.append(
+            {
+                "title": hit["_source"]["title"],
+                "url": hit["_source"]["url"],
+                "content": hit["_source"]["body"],
+                "dynasty": hit["_source"]["dynasty"],
+                "auth": hit["_source"]["auth"],
+            }
+        )
+    return rec
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     return render_template("login.html")
@@ -172,7 +210,10 @@ def search():
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     with open(os.path.join(BASE_DIR, "user.json"), "r", encoding="utf-8") as f:
         users = json.load(f)
+
     username = session.get("username")
+    history = users[username]["history"]
+    recommendation = recommendation_query(history)
 
     now = datetime.datetime.now()
     timestamp = now.strftime("[%d/%b/%Y %H:%M:%S]")
@@ -182,8 +223,6 @@ def search():
 
     if q and not (q1 or q2 or q3):
         print(f"{user_ip} - - {timestamp} [普通搜索]了 ‘{q}’ -")
-
-        users[username]["history"].append(q)
 
         query = generate_query(q)
 
@@ -212,22 +251,14 @@ def search():
                 }
             )
 
+        users[username]["history"].append(q)
         # 更新user.json文件
         with open(os.path.join(BASE_DIR, "user.json"), "w", encoding="utf-8") as f:
             json.dump(users, f, ensure_ascii=False, indent=4)
 
-        return render_template("search_detail.html", q=q, data=data)
+        return render_template("search_detail.html", q=q, data=data, rec=recommendation)
     elif q1 or q2 or q3:
         print(f"{user_ip} - - {timestamp} [高级搜索]了 ‘{q1}’, ‘{q2}’, ‘{q3}’ -")
-        if q1:
-            items = q1.split()
-            for item in items:
-                users[username]["history"].append(item)
-
-        if q2:
-            items = q2.split()
-            for item in items:
-                users[username]["history"].append(item)
 
         query = generate_custom_query(q1, q2, q3, q2t, q2a, q2b)
         print(query)
@@ -256,6 +287,16 @@ def search():
                 }
             )
 
+        if q1:
+            items = q1.split()
+            for item in items:
+                users[username]["history"].append(item)
+
+        if q2:
+            items = q2.split()
+            for item in items:
+                users[username]["history"].append(item)
+
         # 更新user.json文件
         with open(os.path.join(BASE_DIR, "user.json"), "w", encoding="utf-8") as f:
             json.dump(users, f, ensure_ascii=False, indent=4)
@@ -269,6 +310,7 @@ def search():
             q2b=q2b,
             q3=q3,
             data=data,
+            rec=recommendation,
         )
     else:
         return render_template("search.html")

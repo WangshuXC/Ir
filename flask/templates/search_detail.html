@@ -64,7 +64,7 @@
             padding: 0 15px;
 
             width: 90%;
-            height: 3vh;
+            min-height: 3vh;
 
             overflow: hidden;
         }
@@ -92,6 +92,7 @@
 
             width: 90%;
             max-height: 50vh;
+            transition: width 1s ease, height 0.5s ease;
         }
 
         .advenced-set button {
@@ -165,6 +166,8 @@
 
         .recommendation {
             display: flex;
+            flex-direction: column;
+            flex-wrap: nowrap;
             justify-content: space-between;
             align-items: center;
 
@@ -174,9 +177,45 @@
             margin-top: 2vh;
 
             width: 100%;
-            height: 10vh;
+            height: auto;
 
-            overflow: hidden;
+            overflow: scroll;
+            transition: 0.5s ease;
+        }
+
+        .recommendation::-webkit-scrollbar {
+            display: none;
+        }
+
+        .recommendation-box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            border: 1px solid #ccc;
+            border-radius: 15px;
+            background-color: rgba(221, 221, 221, 0.6);
+
+            width: auto;
+            margin: 10px;
+            padding-inline: 30px;
+        }
+
+        .recommendation-box a {
+            color: #73634f;
+            text-decoration: none;
+        }
+
+        .recommendation-box h3 {
+            margin-top: 10px;
+            margin-bottom: 0px;
+            font-size: 20px;
+        }
+
+        .recommendation-box h4 {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 15px;
         }
 
         .search-box {
@@ -211,8 +250,7 @@
         }
 
         .result-box::-webkit-scrollbar {
-            width: 8px;
-            background-color: transparent;
+            display: none;
         }
 
         .result-item {
@@ -549,7 +587,19 @@
 
         </div>
         <div class="recommendation">
-
+            <h3>猜你喜欢</h3>
+            {% if rec %}
+            {% for result in rec %}
+            <div class="recommendation-box">
+                <h3>
+                    <a href="{{ result.url }}" target="_blank">
+                        {{ result.title | safe }}
+                    </a>
+                </h3>
+                <h4>{{result.dynasty}}·{{result.auth}}</h4>
+            </div>
+            {%endfor%}
+            {%endif%}
         </div>
     </div>
 
