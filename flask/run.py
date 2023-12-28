@@ -9,6 +9,7 @@ import re
 
 app = Flask(__name__)
 app.secret_key = "lxcSoHandsome"
+index_name = "shici"
 es = Elasticsearch(hosts="http://elastic:n154Sh+KyweYH-+As92v@127.0.0.1:9200")
 
 
@@ -185,13 +186,13 @@ def recommendation_query(history):
             "query": {
                 "more_like_this": {
                     "fields": ["auth"],
-                    "like": ["李白", "杜甫", "辛弃疾", "孟浩然"],
+                    "like": ["李白", "杜甫", "辛弃疾"],
                     "min_term_freq": 1,
                     "max_query_terms": 12,
                 }
             }
         }
-    recommendation = es.search(index="data", body=query)
+    recommendation = es.search(index=index_name, body=query)
     rec = []
     for hit in recommendation["hits"]["hits"]:
         rec.append(
@@ -285,7 +286,7 @@ def search():
         query = generate_query(q)
 
         # 执行查询
-        result = es.search(index="data", body=query)
+        result = es.search(index=index_name, body=query)
 
         # 处理查询结果
         for hit in result["hits"]["hits"]:
@@ -324,7 +325,7 @@ def search():
 
         query = generate_custom_query(q1, q2, q3, q2t, q2a, q2b)
         # 执行查询
-        result = es.search(index="data", body=query)
+        result = es.search(index=index_name, body=query)
 
         # 处理查询结果
         for hit in result["hits"]["hits"]:
